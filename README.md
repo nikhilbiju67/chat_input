@@ -33,36 +33,37 @@ import 'package:flutter/material.dart';
 import 'package:chat_input_widget/chat_input_widget.dart';
 
 class ChatScreen extends StatelessWidget {
-@override
-Widget build(BuildContext context) {
-return Scaffold(
-   appBar: AppBar(
-   title: Text('Chat Screen'),
-   ),
-   body: Column(
-      children: [
-   Expanded(
-   child: ListView(
-   // Display chat messages here
-   ),
-   ),
-   InputWidget(
-   onSendAudio: (audioFile, duration) {
-   // Handle sending audio messages
-   },
-   onSendText: (text) {
-   // Handle sending text messages
-   },
-   onSendImage: (selectedFile) {
-   // Handle sending image messages
-   },
-   // Customize other properties if needed
-   ),
-   ],
-     ),
-     );
-      }
-    }```
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Chat Screen'),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView(
+// Display chat messages here
+            ),),
+          InputWidget(
+            onSendAudio: (audioFile, duration) {
+// Handle sending audio messages
+            },
+            onSendText: (text) {
+// Handle sending text messages
+            },
+            onSendImage: (selectedFile) {
+// Handle sending image messages
+            },
+// Customize other properties if needed
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
 
+![Alt Text](https://i.ibb.co/xXBGwD2/ezgif-5-5fdc10f37c.gif)
 
 

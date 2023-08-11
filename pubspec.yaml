@@ -1,7 +1,7 @@
 name: chat_input
 description: A Flutter package for for chat input supports audio,image and Text
 version: 0.0.1
-homepage:
+homepage: https://github.com/nikhilbiju67/chat_input
 
 environment:
   sdk: '>=3.0.6 <4.0.0'
@@ -9,6 +9,7 @@ environment:
 
 dependencies:
   image_picker: ^0.8.5+3
+  flutter_animate: ^4.2.0+1
   vibration: ^1.7.3
   permission_handler: ^10.2.0
   easy_debounce: ^2.0.2+1
