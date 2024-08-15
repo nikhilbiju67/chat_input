@@ -8,6 +8,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:chat_input/blinking_widget.dart';
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:uuid/uuid.dart';
@@ -24,7 +25,9 @@ enum RecordingState {
 class InputWidget extends StatefulWidget {
   final void Function(File audioFile, Duration duration) onSendAudio;
   final Function(String text) onSendText;
-  final Function(File selectedFile) onSendImage;
+
+  // final Function(File selectedFile) onSendImage;
+  final Function? onAttachmentClick;
   final Function? onError;
   final EdgeInsetsGeometry? containerMargin;
   EdgeInsetsGeometry? attachmentDialogMargin;
@@ -37,7 +40,8 @@ class InputWidget extends StatefulWidget {
     Key? key,
     required this.onSendAudio,
     required this.onSendText,
-    required this.onSendImage,
+    this.onAttachmentClick,
+    // required this.onSendImage,
     this.onError,
     this.containerPadding,
     this.containerMargin,
@@ -52,7 +56,9 @@ class InputWidget extends StatefulWidget {
 
 class _InputWidgetState extends State<InputWidget> {
   final TextEditingController _textEditingController = TextEditingController();
-  final Record _audioRecorder = Record();
+  final _audioRecorder = AudioRecorder(
+
+  );
 
   bool _showMike = true;
   RecordingState _recordingState = RecordingState.ready;
@@ -87,16 +93,17 @@ class _InputWidgetState extends State<InputWidget> {
 
   // Show attachment options sheet
   void _showHideAttachmentSheet() {
-    showModalBottomSheet<void>(
-      context: context,
-      isDismissible: true,
-      barrierColor: Colors.black45.withOpacity(.1),
-      builder: (BuildContext context) {
-        return Container(
-            // Attachment options sheet contents
-            );
-      },
-    );
+    widget.onAttachmentClick();
+    // showModalBottomSheet<void>(
+    //   context: context,
+    //   isDismissible: true,
+    //   barrierColor: Colors.black45.withOpacity(.1),
+    //   builder: (BuildContext context) {
+    //     return Container(
+    //       // Attachment options sheet contents
+    //     );
+    //   },
+    // );
   }
 
   // Start recording audio
@@ -106,7 +113,14 @@ class _InputWidgetState extends State<InputWidget> {
 
     if (_recordingState == RecordingState.ready) {
       try {
-        await _audioRecorder.start();
+        final String path = await getApplicationCacheDirectory()
+            .then((result) => result.path) + "${_uuid.v4()}.m4a";
+        if (await _audioRecorder.hasPermission()) {
+          await _audioRecorder.start(
+            RecordConfig(),
+            path: path,
+          );
+        }
         _recordingState = RecordingState.recording;
         _secondsElapsed = 0;
         _updateTimer();
@@ -126,7 +140,9 @@ class _InputWidgetState extends State<InputWidget> {
           _recordedFile = File(path);
           widget.onSendAudio(_recordedFile, Duration(seconds: _secondsElapsed));
         } else {
-          _recordedFile.delete();
+          if (_recordedFile.existsSync()) {
+            _recordedFile.delete();
+          }
         }
         _recordingState = RecordingState.ready;
         _secondsElapsed = 0;
@@ -192,60 +208,60 @@ class _InputWidgetState extends State<InputWidget> {
             alignment: Alignment.centerRight,
             child: _showMike
                 ? Transform.translate(
-                    offset: Offset(_xTranslation, 0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (_recordingState == RecordingState.recording &&
-                            !_voiceCanceled)
-                          Shimmer.fromColors(
-                            baseColor: Colors.grey.withOpacity(.8),
-                            highlightColor: Colors.blue,
-                            period: const Duration(milliseconds: 1000),
-                            direction: ShimmerDirection.rtl,
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.keyboard_double_arrow_left,
-                                  color: Colors.black54,
-                                ),
-                                Text(
-                                  "Slide to cancel".toUpperCase(),
-                                  style: const TextStyle(
-                                    color: Colors.black54,
-                                    overflow: TextOverflow.clip,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
+              offset: Offset(_xTranslation, 0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_recordingState == RecordingState.recording &&
+                      !_voiceCanceled)
+                    Shimmer.fromColors(
+                      baseColor: Colors.grey.withOpacity(.8),
+                      highlightColor: Colors.blue,
+                      period: const Duration(milliseconds: 1000),
+                      direction: ShimmerDirection.rtl,
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.keyboard_double_arrow_left,
+                            color: Colors.black54,
+                          ),
+                          Text(
+                            "Slide to cancel".toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.black54,
+                              overflow: TextOverflow.clip,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
                             ),
                           ),
-                        const SizedBox(width: 30),
-                        MikeWidget(
-                          onSlide: (double value) {
-                            setState(() {
-                              _xTranslation = value;
-                            });
-                          },
-                          onStopRecording: (canceled) {
-                            if (canceled) {
-                              setState(() {
-                                _voiceCanceled = true;
-                                _xTranslation = 0;
-                              });
-                            } else {
-                              _stopRecording(canceled: canceled);
-                            }
-                          },
-                          startRecording: _startRecording,
-                          micColor: widget.micColor,
-                          recording:
-                              _recordingState == RecordingState.recording,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  )
+                  const SizedBox(width: 30),
+                  MikeWidget(
+                    onSlide: (double value) {
+                      setState(() {
+                        _xTranslation = value;
+                      });
+                    },
+                    onStopRecording: (canceled) {
+                      if (canceled) {
+                        setState(() {
+                          _voiceCanceled = true;
+                          _xTranslation = 0;
+                        });
+                      } else {
+                        _stopRecording(canceled: canceled);
+                      }
+                    },
+                    startRecording: _startRecording,
+                    micColor: widget.micColor,
+                    recording:
+                    _recordingState == RecordingState.recording,
+                  ),
+                ],
+              ),
+            )
                 : _sendWidget(),
           ),
         ],
@@ -292,25 +308,25 @@ class _InputWidgetState extends State<InputWidget> {
       children: [
         !_voiceCanceled
             ? BlinkingWidget(
-                child: widget.micIcon ??
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.mic,
-                        size: 30,
-                        color: Colors.red,
-                      ),
-                    ),
-                duration: const Duration(milliseconds: 500),
-              )
-            : AnimatedMic(
-                onAnimationCompleted: () {
-                  setState(() {
-                    _voiceCanceled = false;
-                    _stopRecording(canceled: true);
-                  });
-                },
+          child: widget.micIcon ??
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(
+                  Icons.mic,
+                  size: 30,
+                  color: Colors.red,
+                ),
               ),
+          duration: const Duration(milliseconds: 500),
+        )
+            : AnimatedMic(
+          onAnimationCompleted: () {
+            setState(() {
+              _voiceCanceled = false;
+              _stopRecording(canceled: true);
+            });
+          },
+        ),
         const SizedBox(width: 10),
         Text(
           formattedTime,
@@ -388,10 +404,15 @@ class _AnimatedMicState extends State<AnimatedMic>
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _controller = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 500));
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
   }
 
   @override
@@ -401,39 +422,39 @@ class _AnimatedMicState extends State<AnimatedMic>
         alignment: Alignment.center,
         children: [
           IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.mic,
-                    size: 30,
-                    color: Colors.red,
-                  ))
+              onPressed: () {},
+              icon: const Icon(
+                Icons.mic,
+                size: 30,
+                color: Colors.red,
+              ))
               .animate()
               .rotate(alignment: Alignment.center)
               .moveY(
-                  curve: Curves.decelerate,
-                  begin: 0,
-                  end: -200,
-                  duration: const Duration(milliseconds: 500))
+              curve: Curves.decelerate,
+              begin: 0,
+              end: -200,
+              duration: const Duration(milliseconds: 500))
               .callback(callback: (v) {
-                showBin = true;
-                setState(() {});
-                print("up animation completed");
-              })
+            showBin = true;
+            setState(() {});
+            print("up animation completed");
+          })
               .then()
               .moveY(
-                  begin: 0,
-                  end: 200,
-                  duration: const Duration(milliseconds: 500))
+              begin: 0,
+              end: 200,
+              duration: const Duration(milliseconds: 500))
               .fadeOut(duration: const Duration(milliseconds: 500))
               .callback(callback: (v) {
-                print("down animation completed");
-                _controller?.forward();
-              }),
+            print("down animation completed");
+            _controller?.forward();
+          }),
           if (showBin)
             const Icon(Icons.delete, color: Colors.red, size: 30)
                 .animate()
                 .moveY(
-                    begin: 100, end: 0, duration: Duration(milliseconds: 300))
+                begin: 100, end: 0, duration: Duration(milliseconds: 300))
                 .animate(controller: _controller, autoPlay: false)
                 .shake()
                 .callback(callback: (v) {
@@ -478,9 +499,9 @@ class _MikeWidgetState extends State<MikeWidget> {
     _buttonSize = 35;
 
     EasyThrottle.throttle('audio_debounce', const Duration(milliseconds: 500),
-        () {
-      widget.onStopRecording(canceled);
-    });
+            () {
+          widget.onStopRecording(canceled);
+        });
   }
 
   get buttonSize => _buttonSize;
@@ -524,7 +545,10 @@ class _MikeWidgetState extends State<MikeWidget> {
             return;
           }
           if (details.localPosition.dx <
-              -MediaQuery.of(context).size.width / 6) {
+              -MediaQuery
+                  .of(context)
+                  .size
+                  .width / 6) {
             canceled = true;
             onStopRecording();
             return;

@@ -9,14 +9,14 @@ environment:
 
 dependencies:
   image_picker: ^0.8.5+3
-  flutter_animate: ^4.2.0+1
-  vibration: ^1.7.3
-  permission_handler: ^10.2.0
-  easy_debounce: ^2.0.2+1
-  path_provider: ^2.0.0
-  shimmer: ^2.0.0
-  uuid: ^3.0.1
-  record: ^4.4.4
+  flutter_animate: ^4.5.0
+  vibration: ^1.9.0
+  permission_handler: ^11.3.1
+  easy_debounce: ^2.0.3
+  path_provider: ^2.1.4
+  shimmer: ^3.0.0
+  uuid: ^4.4.2
+  record: ^5.1.2
   flutter:
     sdk: flutter
 
