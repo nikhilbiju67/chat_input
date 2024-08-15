@@ -28,10 +28,11 @@ packages:
   chat_input:
     dependency: "direct main"
     description:
-      path: ".."
-      relative: true
-    source: path
-    version: "0.0.2"
+      name: chat_input
+      sha256: f6406777e126a6dacfa72a733c271d046fe991de2fd1ccbef94b3dd44a8e8173
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.6"
   clock:
     dependency: transitive
     description:

@@ -4,7 +4,6 @@ library chat_input;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:nativewrappers/_internal/vm/lib/ffi_allocation_patch.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:chat_input/blinking_widget.dart';
 import 'package:easy_debounce/easy_throttle.dart';
