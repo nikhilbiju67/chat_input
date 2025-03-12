@@ -1,0 +1,47 @@
+name: Flutter Plugin Dry Run Publish
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - master
+      - feature/payment_web_view
+      - feature/in_app_web_browser
+
+jobs:
+  publish-dry-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.1'  # Change to your Flutter version or remove for latest stable
+
+      - name: Create env.dart with GitHub Secrets
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          SANDBOX_API_BASE_URL: ${{ secrets.SANDBOX_API_BASE_URL }}
+        run: |
+          mkdir -p lib/services
+          cat <<EOF > lib/services/env.dart
+          // GENERATED FILE - DO NOT MODIFY BY HAND
+          const API_BASE_URL = '${API_BASE_URL}';
+          const SANDBOX_API_BASE_URL = '${SANDBOX_API_BASE_URL}';
+          EOF
+
+      - name: Print env.dart for verification
+        run: cat lib/services/env.dart
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Analyze Dart Code
+        run: flutter analyze
+
+      - name: Dry-run Flutter Publish
+        run: flutter pub publish --dry-run
